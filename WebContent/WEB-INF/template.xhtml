@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+<h:head>
+	<h:outputStylesheet name="css/style.css" />
+    <script type="text/javascript">
+    function handleComplete(dlg, xhr, status, args) {
+    	if (args &amp;&amp; args.validationFailed) {
+    		return false;
+    	}     	
+        var isFailed = args.validationFailed;
+        var failed = args.failed;
+        if (!isFailed) {
+            if ((failed === null || failed === undefined)
+                    || !(failed === undefined || failed === null || failed)) {
+                dlg.hide();
+                return true;
+            }
+        }
+        return false;
+    }
+    </script>
+</h:head>
+
+<h:form id="form">
+	<div id="page">
+		<div id="header-container">
+			<div id="header">
+				<ui:insert name="header">
+					<p:menubar>
+						<p:menuitem value="Employeees" url="/secure/employee.xhtml" />
+						<p:menuitem value="Projects" url="/secure/project.xhtml" />
+						<p:menuitem value="Departments" url="/secure/admin/department.xhtml" 
+							rendered="#{sessionController.user.admin}"/>
+						<p:menuitem value="Addresses" url="/secure/address.xhtml" />
+						<p:menuitem value="Logout" url="/checkLogout" />
+					</p:menubar>
+				</ui:insert>
+			</div>
+		</div>
+		<div id="content-container">
+			<div id="content">
+				<ui:insert name="content">
+					<p>Main content</p>
+				</ui:insert>
+			</div>
+		</div>
+		<div id="footer-container">
+			<div id="footer">
+				<ui:insert name="footer">
+					<p>Footer</p>
+				</ui:insert>
+			</div>
+		</div>
+	</div>
+</h:form>
+<h:form id="dialogForm">
+	<ui:insert name="dialogArea">
+	</ui:insert>
+</h:form>
+</html>

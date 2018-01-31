@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/task 
+		http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<context:component-scan base-package="tr" />
+
+	<!-- @Scheduled kullanımı için -->
+	<task:annotation-driven scheduler="scheduler" />
+	<task:scheduler id="scheduler" pool-size="2" />
+
+
+	<bean id="configProperties"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:app.properties" />
+	</bean>
+
+	<bean id="dataSource" class="org.postgresql.jdbc2.optional.PoolingDataSource"> 
+		<property name="serverName" value="${db.postgre.serverName}" /> 
+		<property name="portNumber" value="${db.postgre.portNumber}" /> 
+		<property name="databaseName" value="${db.postgre.databaseName}" /> 
+		<property name="user" value="${db.postgre.user}" /> 
+		<property name="password" value="${db.postgre.password}" /> 
+		<property name="initialConnections" value="${db.postgre.initialConnections}" /> 
+		<property name="maxConnections" value="${db.postgre.maxConnections}" /> 
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan" value="tr" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.max_fetch_depth">${hibernate.max_fetch_depth}</prop>
+				<prop key="hibernate.default_schema">${hibernate.default_schema}</prop>
+			</props>
+		</property>
+	</bean>
+
+	<tx:annotation-driven />
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+		<property name="scopes">
+			<map>
+				<entry key="view">
+					<bean class="tr.org.tnb.egitim.entegrasyon.ViewScope" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<!-- <bean id="timeLoggingWithBeforeAndAfterService" class="tr.org.tnb.egitim.aspect.TimeLoggingWithBeforeAndAfterService" 
+		/> <aop:config> <aop:pointcut id="timeLoggingPointcut" expression="annotation(@MYCustomAnnotation)" 
+		/> <aop:advisor id="timeLoggingAdvisor" advice-ref="timeLoggingWithBeforeAndAfterService" 
+		pointcut-ref="timeLoggingPointcut" /> -->
+	<!-- <aop:aspect ref="timeLoggingWithAroundService"> <aop:pointcut id="logPointCut" 
+		expression="within(tr.org.tnb..*)" /> <aop:around pointcut-ref="logPointCut" 
+		method="logExecTime" /> </aop:aspect> -->
+	<!-- <aop:aspect ref="timeLoggingWithAroundService"> <aop:pointcut id="logPointCut" 
+		expression="execution(* tr.org.tnb.egitim.projeyonetimi.employee.EmployeeController.*(..))" 
+		/> <aop:around pointcut-ref="logPointCut" method="logExecTime" /> </aop:aspect> 
+		</aop:config> -->
+
+	<aop:aspectj-autoproxy />
+
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.host}" />
+		<property name="port" value="${mail.port}" />
+		<property name="protocol" value="${mail.protocol}" />
+		<property name="username" value="${mail.username}" />
+		<property name="password" value="${mail.password}" />
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtps.auth">${mail.smtps.auth}</prop>
+				<prop key="mail.smtps.starttls.enable">${mail.smtps.starttls.enable}</prop>
+				<prop key="mail.smtps.debug">${mail.smtps.debug}</prop>
+				<prop key="mail.smtps.ssl.trust">${mail.smtps.ssl.trust}</prop>
+			</props>
+		</property>
+		<property name="defaultEncoding" value="${mail.defaultEncoding}" />
+	</bean>
+</beans>

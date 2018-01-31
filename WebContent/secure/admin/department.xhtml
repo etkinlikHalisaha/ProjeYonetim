@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnb="http://java.sun.com/jsf/composite/tnb"
+	template="/WEB-INF/template.xhtml">
+
+	<ui:define name="content">
+		<p:growl autoUpdate="true" life="3000" globalOnly="true" showSummary="true" showDetail="true" />
+		<p:dataTable id="departmentTable"
+			lazy="true" value="#{departmentController.lazyDataModel}" var="department"
+			paginator="true" paginatorAlwaysVisible="false" paginatorPosition="bottom"
+			rows="10"
+			selection="#{departmentController.department}" 
+			selectionMode="single">
+			<p:ajax event="rowSelect" process="@this" update=":form:departmentPanel" />
+			<p:ajax event="rowUnselect" process="@this" update=":form:departmentPanel" />
+			<f:facet name="header">Department List</f:facet>
+			<p:column headerText="Name" sortBy="#{department.name}" filterBy="#{department.name}">
+				<h:outputText value="#{department.name}" />
+			</p:column>
+			<f:facet name="footer">
+				<p:commandButton value="New Record" icon="ui-icon-plusthick" 
+					title="Click to create new department" 
+					action="#{departmentController.create}" 
+					process="@this"
+					update=":form:departmentPanel"/>
+			</f:facet>
+		</p:dataTable>
+		<br/>
+		<h:panelGroup id="departmentPanel">
+			<p:panel rendered="#{departmentController.department != null}">
+				<f:facet name="header">Department Details</f:facet>
+				<h:panelGrid id="departmentGrid" columns="3">
+					<h:outputLabel value="Name: "/>
+					<p:inputText id="name" value="#{departmentController.department.name}"
+						required="true" requiredMessage="Please enter name!"/>
+					<p:message for="name" />
+				</h:panelGrid>
+				
+				<f:facet name="footer">
+					<tnb:buttons id="myButtons" controller="#{departmentController}" 
+						process=":form:name"
+						update1=":form:departmentPanel"
+						update2=":form:departmentTable"
+						renderDelete="#{departmentController.department.id != null}"/>
+				</f:facet>				
+			</p:panel>
+		</h:panelGroup>
+	</ui:define>
+</ui:composition>

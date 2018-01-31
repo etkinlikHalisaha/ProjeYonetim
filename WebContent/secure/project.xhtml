@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/template.xhtml">
+
+	<ui:define name="content">
+		<p:growl autoUpdate="true" life="3000" globalOnly="true" showSummary="true" showDetail="true" />
+		<p:dataTable id="projectTable"
+			lazy="true" value="#{projectController.lazyDataModel}" var="project"
+			paginator="true" paginatorAlwaysVisible="false" paginatorPosition="bottom"
+			rows="10"
+			selection="#{projectController.project}" 
+			selectionMode="single">
+			<p:ajax event="rowSelect" process="@this" update=":form:projectPanel" />
+			<p:ajax event="rowUnselect" process="@this" update=":form:projectPanel" />
+			<f:facet name="header">Project List</f:facet>
+			<p:column headerText="Name" sortBy="#{project.name}" filterBy="#{project.name}">
+				<h:outputText value="#{project.name}" />
+			</p:column>
+			<p:column headerText="Project Type" sortBy="#{project.type}" style="text-align: center">
+				<h:outputText value="Design Project" rendered="#{project.designProject}"/>
+				<h:outputText value="Quality Project" rendered="#{project.qualityProject}"/>
+			</p:column>
+			<p:column headerText="Info" sortBy="#{project.designCompany}">
+				<h:outputText value="Design Company: #{project.designCompany}" rendered="#{project.designProject}"/>
+				<h:outputText value="Quality Degree: #{project.qualityDegree}" rendered="#{project.qualityProject}"/>
+			</p:column>
+			<f:facet name="footer">
+				<p:menuButton value="Create" icon="ui-icon-plusthick">
+			        <p:menuitem value="Design Project" 
+			        	actionListener="#{projectController.createDesignProject}"
+			        	process="@this" 
+			        	update=":form:projectPanel" />
+			        <p:menuitem value="Quality Project" 
+			        	actionListener="#{projectController.createQualityProject}" 
+			        	process="@this" 
+			        	update=":form:projectPanel" />
+			    </p:menuButton>
+			</f:facet>
+		</p:dataTable>
+		<br/>
+		<h:panelGroup id="projectPanel">
+			<p:panel rendered="#{projectController.project != null}">
+				<f:facet name="header">
+					<h:outputText value="Design Project Details" 
+						rendered="#{projectController.project.designProject}" />
+					<h:outputText value="Quality Project Details" 
+						rendered="#{projectController.project.qualityProject}" />
+				</f:facet>
+				<h:panelGrid id="projectGrid" columns="3">
+					<h:outputLabel value="Name: "/>
+					<p:inputText id="name" value="#{projectController.project.name}"
+						required="true" requiredMessage="Please enter name!"/>
+					<p:message for="name" />
+	
+					<h:outputLabel value="Design Company: " rendered="#{projectController.project.designProject}"/>
+					<p:inputText id="designCompany" value="#{projectController.project.designCompany}"
+						rendered="#{projectController.project.designProject}" />
+					<p:message for="designCompany" 
+						rendered="#{projectController.project.designProject}"/>
+	
+					<h:outputLabel value="Quality Degree: " rendered="#{projectController.project.qualityProject}"/>
+					<p:inputNumber id="qualityDegree" value="#{projectController.project.qualityDegree}"
+						inputStyle="text-align: right"
+						minValue="0" maxValue="100" decimalPlaces="0"
+						rendered="#{projectController.project.qualityProject}"
+						required="true" requiredMessage="Please enter degree!" />
+					<p:message for="qualityDegree" 
+						rendered="#{projectController.project.qualityProject}"/>
+	
+				</h:panelGrid>
+				
+				<f:facet name="footer">
+					<div style="text-align: right">
+						<p:commandButton value="Save" icon="ui-icon-disk"
+							title="Click to save the project"
+							action="#{projectController.save}"
+							process="@this, :form:projectGrid" 
+							update=":form:projectPanel, :form:projectTable" />
+						<p:commandButton value="Cancel" icon="ui-icon-cancel"
+							title="Click to cancel editing"
+							action="#{projectController.cancel}"
+							process="@this" 
+							update=":form:projectPanel" />
+						<p:commandButton value="Delete" icon="ui-icon-trash"
+							title="Click to delete the project"
+							action="#{projectController.delete}"
+							process="@this" 
+							update=":form:projectPanel, :form:projectTable" />	
+					</div>
+				</f:facet>				
+			</p:panel>
+		</h:panelGroup>
+	</ui:define>
+</ui:composition>

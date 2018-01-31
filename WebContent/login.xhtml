@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+<h:head>
+	<h:outputStylesheet name="css/style.css" />
+</h:head>
+
+<h:form id="form" prependId="false">
+	<div id="page">
+		<div id="header-container">
+			<div id="header">
+			</div>
+		</div>
+		<div id="content-container">
+			<div id="content">
+				<p:panelGrid columns="2" style="text-align: center;">
+					<h:outputLabel value="Kullanıcı adı: " />
+					<p:inputText id="uname" />
+					
+					<h:outputLabel value="Parola: " />
+					<p:password id="pwd" />
+					
+					<p:commandButton type="button" 
+						onclick="document.#{p:component('form')}.action='checkLogin'; document.#{p:component('form')}.submit();" value="Login" />
+ 					<h:panelGroup layout="block" rendered="#{param.error != null}">
+                    	<h:outputText value="Giriş başarısız!" style="color: red"/>
+                    </h:panelGroup>						
+					
+				</p:panelGrid>
+			</div>
+		</div>
+	</div>
+</h:form>
+</html>

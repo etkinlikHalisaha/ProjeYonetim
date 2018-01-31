@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/template.xhtml">
+
+	<ui:define name="content">
+		<p:growl autoUpdate="true" life="3000" globalOnly="true" showSummary="true" showDetail="true" />
+		<p:dataTable id="addressTable"
+			lazy="true" value="#{addressController.lazyDataModel}" var="address"
+			paginator="true" paginatorAlwaysVisible="false" paginatorPosition="bottom"
+			rows="10"
+			selection="#{addressController.address}" 
+			selectionMode="single">
+			<p:ajax event="rowSelect" process="@this" update=":form:addressPanel" />
+			<p:ajax event="rowUnselect" process="@this" update=":form:addressPanel" />
+			<f:facet name="header">Address List</f:facet>
+			<p:column headerText="Name" sortBy="#{address.street}" filterBy="#{address.street}">
+				<h:outputText value="#{address.street}" />
+			</p:column>
+			<p:column headerText="City" sortBy="#{address.city}" filterBy="#{address.city}">
+				<h:outputText value="#{address.city}" />
+			</p:column>
+			<p:column headerText="State" sortBy="#{address.state}" filterBy="#{address.state}">
+				<h:outputText value="#{address.state}" />
+			</p:column>
+			<p:column headerText="Zip" sortBy="#{address.zip}" filterBy="#{address.zip}">
+				<h:outputText value="#{address.zip}" />
+			</p:column>
+			<f:facet name="footer">
+				<p:commandButton value="New Record" icon="ui-icon-plusthick" 
+					title="Click to create new address" 
+					action="#{addressController.create}" 
+					process="@this"
+					update=":form:addressPanel"/>
+			</f:facet>
+		</p:dataTable>
+		<br/>
+		<h:panelGroup id="addressPanel">
+			<p:panel rendered="#{addressController.address != null}">
+				<f:facet name="header">Address Details</f:facet>
+				<h:panelGrid id="addressGrid" columns="3">
+					<h:outputLabel value="Street: "/>
+					<p:inputText id="street" value="#{addressController.address.street}" />
+					<p:message for="street" />
+
+					<h:outputLabel value="City: "/>
+					<p:inputText id="city" value="#{addressController.address.city}" />
+					<p:message for="city" />
+
+					<h:outputLabel value="State: "/>
+					<p:inputText id="state" value="#{addressController.address.state}" />
+					<p:message for="state" />
+
+					<h:outputLabel value="Zip: "/>
+					<p:inputText id="zip" value="#{addressController.address.zip}" />
+					<p:message for="zip" />
+				</h:panelGrid>
+				
+				<f:facet name="footer">
+					<div style="text-align: right">
+						<p:commandButton value="Save" icon="ui-icon-disk"
+							title="Click to save the address"
+							action="#{addressController.save}"
+							process="@this, :form:addressGrid" 
+							update=":form:addressPanel, :form:addressTable" />
+						<p:commandButton value="Cancel" icon="ui-icon-cancel"
+							title="Click to cancel editing"
+							action="#{addressController.cancel}"
+							process="@this" 
+							update=":form:addressPanel" />
+						<p:commandButton value="Delete" icon="ui-icon-trash"
+							title="Click to delete the address"
+							action="#{addressController.delete}"
+							process="@this" 
+							update=":form:addressPanel, :form:addressTable" />	
+					</div>
+				</f:facet>				
+			</p:panel>
+		</h:panelGroup>
+	</ui:define>
+</ui:composition>

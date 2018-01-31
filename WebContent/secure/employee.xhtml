@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnb="http://java.sun.com/jsf/composite/tnb"
+	template="/WEB-INF/template.xhtml">
+
+	<ui:define name="content">
+		<p:growl autoUpdate="true" life="3000" globalOnly="true" showSummary="true" showDetail="false" />
+		<p:dataTable id="employeeTable"
+			lazy="true" value="#{employeeController.lazyDataModel}" var="employee"
+			paginator="true" paginatorAlwaysVisible="false" paginatorPosition="bottom"
+			rows="10"
+			selection="#{employeeController.employee}" 
+			selectionMode="single">
+			<p:ajax event="rowSelect" process="@this" 
+				update=":dialogForm:employeePanel, :dialogForm:employeeButtons" 
+				oncomplete="PF('employeeDlg').show()"/>
+			<p:ajax event="rowUnselect" process="@this" update=":dialogForm:employeePanel" />
+			<f:facet name="header">Employee List</f:facet>
+			<p:column headerText="#{labels['employee.name']}" sortBy="#{employee.name}" filterBy="#{employee.name}">
+				<h:outputText value="#{employee.name}" />
+			</p:column>
+			<p:column headerText="Salary" sortBy="#{employee.salary}" 
+				style="width: 150px; text-align: center">
+				<h:outputText value="#{employee.salary}" />
+			</p:column>
+			<p:column headerText="Address">
+				<h:outputText value="#{employee.address.fullAddress}"/>
+			</p:column>
+			<p:column headerText="Phones">
+				<ui:repeat var="phone" value="#{employee.phoneList}">
+					#{phone.phoneNumber}<br/>
+				</ui:repeat>
+			</p:column>
+			<p:column headerText="Department" style="width: 150px; text-align: center">
+				<h:outputText value="#{employee.department.name}"/>
+			</p:column>
+			<p:column headerText="Manager">
+				<h:outputText value="#{employee.manager.name}"/>
+			</p:column>
+			<f:facet name="footer">
+				<p:commandButton value="New Record" icon="ui-icon-plusthick" 
+					title="Click to create new Employee" 
+					action="#{employeeController.create}" 
+					process="@this"
+					update=":dialogForm:employeePanel"
+					oncomplete="PF('employeeDlg').show()"/>
+			</f:facet>
+		</p:dataTable>
+	</ui:define>
+	
+	<ui:define name="dialogArea">
+		<p:dialog dynamic="true" modal="true" closable="true" closeOnEscape="true"
+			widgetVar="employeeDlg" width="900" height="600">
+			<p:ajax event="close" listener="#{employeeController.cancel}" 
+				process="@this" update=":dialogForm:employeePanel" />
+			<f:facet name="header">
+				<h:panelGrid columns="3" columnClasses="top,top,middle">
+					<h:graphicImage library="img" name="user.png" width="40" height="auto"/>
+					<p:spacer width="20"  />
+					<h:outputText value="Employee Details"/>
+				</h:panelGrid>
+			</f:facet>
+			<h:panelGroup id="employeePanel">
+				<h:panelGrid id="employeeGrid" columns="3"
+					rendered="#{employeeController.employee != null}">
+					<h:outputLabel value="Name: "/>
+					<p:inputText id="name" value="#{employeeController.employee.name}"
+						required="true" requiredMessage="Please enter name!"/>
+					<p:message for="name" />
+	
+					<h:outputLabel value="Salary: "/>
+					<p:inputNumber id="salary" value="#{employeeController.employee.salary}" />
+					<p:message for="salary" />
+					
+					<h:outputLabel value="Manager:" />
+					<h:panelGrid columns="2">
+						<h:outputText id="manager" value="#{employeeController.employee.manager.name}" />
+						<p:commandButton icon="ui-icon-search"
+							title="Select manager"
+							action="#{employeeController.startSelectingManager}"
+							process="@this"
+							update=":dialogForm:managerPanel, :dialogForm:managerButtons"
+							oncomplete="PF('managerDlg').show()"/>
+					</h:panelGrid>
+					<p:message for="manager"/>
+					
+					<h:outputLabel value="Address:" />
+					<h:panelGrid columns="2">
+						<p:autoComplete id="address" 
+							value="#{employeeController.employee.address}"
+							completeMethod="#{employeeController.completeAddress}"
+							var="address" 
+							itemLabel="#{address.fullAddress}" itemValue="#{address}" 
+							converter="#{addressConverter}"
+							minQueryLength="1" queryDelay="500"
+							forceSelection="true" />
+						<p:commandButton icon="ui-icon-plusthick"
+							title="Create new address"
+							action="#{employeeController.createAddress}"
+							process="@this"
+							update=":dialogForm:addressPanel"
+							oncomplete="PF('addressDlg').show()"/>
+					</h:panelGrid>
+					<p:message for="address"/>
+					
+					<h:outputLabel value="Department:" />
+					<p:selectOneMenu id="department" 
+						value="#{employeeController.employee.department}"
+						converter="#{departmentConverter}">
+						<f:selectItem noSelectionOption="true"/>
+						<f:selectItems value="#{employeeController.departmentList}" 
+							var="department" 
+							itemLabel="#{department.name}"
+							itemValue="#{department}"/>
+					</p:selectOneMenu>
+					<p:message for="department"/>
+					
+					<h:outputLabel value="Phones: "/>
+					<h:panelGroup>
+						<h:panelGrid columns="3" id="phoneGrid">
+							<p:selectOneMenu id="phoneType" 
+								value="#{employeeController.phone.type}" 
+								required="true" requiredMessage="Select type!">
+								<f:selectItem noSelectionOption="true"/>
+								<f:selectItems value="#{commonDataController.phoneTypeList}" 
+									var="phoneType" 
+									itemLabel="#{phoneType.label}"
+									itemValue="#{phoneType}"/>
+							</p:selectOneMenu>
+							<p:inputMask id="phoneNumber" value="#{employeeController.phone.number}"
+								mask="\(999\) 999-99-99"
+								required="true" requiredMessage="Enter number!"/>
+							<p:commandButton value="Add Phone" 
+								action="#{employeeController.addPhone}"
+								process="@this, :dialogForm:phoneGrid"
+								update=":dialogForm:phoneGrid, :dialogForm:phoneTable" />
+								
+							<p:message for="phoneType"/>
+							<p:message for="phoneNumber"/>
+						</h:panelGrid>
+						<div style="width:500px">
+						<p:dataTable id="phoneTable" 
+							value="#{employeeController.employee.phoneList}" var="phone"
+							emptyMessage="There is no registered phone!">
+							<p:column headerText="Type" sortBy="#{phone.type}">
+								<h:outputText value="#{phone.type.label}" />
+							</p:column>
+							<p:column headerText="Number" sortBy="#{phone.number}">
+								<h:outputText value="#{phone.number}" />
+							</p:column>
+							<p:column style="width:50px; text-align: center">
+								<p:commandButton icon="ui-icon-trash"
+									title="Click to delete the phone"
+									action="#{employeeController.removePhone(phone)}"
+									process="@this" 
+									update=":dialogForm:phoneTable" />							
+								</p:column>
+						</p:dataTable>
+						</div>
+					</h:panelGroup>
+					
+				</h:panelGrid>
+				
+			</h:panelGroup>
+			<f:facet name="footer">
+				<h:panelGroup id="employeeButtons" layout="block" style="text-align: right">
+					<p:commandButton value="Save" icon="ui-icon-disk"
+						title="Click to save the employee"
+						partialSubmit="true"
+						action="#{employeeController.save}" 
+						process="@this, :dialogForm:name, :dialogForm:salary, :dialogForm:department, :dialogForm:address"  
+						update=":dialogForm:employeePanel, :form:employeeTable" 
+						oncomplete="handleComplete(PF('employeeDlg'), xhr, status, args)"/>
+					<p:commandButton value="Cancel" icon="ui-icon-cancel"
+						title="Click to cancel editing"
+						type="button"
+						onclick="PF('employeeDlg').hide()"/>
+					<p:commandButton value="Delete" icon="ui-icon-trash"
+						title="Click to delete the employee"
+						rendered="#{employeeController.employee.id != null}"
+						action="#{employeeController.delete}"
+						process="@this" 
+						update=":dialogForm:employeePanel, :form:employeeTable" 
+						oncomplete="PF('employeeDlg').hide()"/>	
+				</h:panelGroup>
+			</f:facet>				
+		</p:dialog>
+
+		<p:dialog dynamic="true" modal="true" closable="true" closeOnEscape="true"
+			widgetVar="addressDlg" width="500" height="250">
+			<p:ajax event="close" listener="#{employeeController.cancelAddress}" 
+				process="@this" update=":dialogForm:addressPanel" />
+			<h:panelGroup id="addressPanel">
+				<h:panelGrid id="addressGrid" columns="3" rendered="#{employeeController.address != null}">
+					<h:outputLabel value="Street: "/>
+					<p:inputText id="street" value="#{employeeController.address.street}" />
+					<p:message for="street" />
+
+					<h:outputLabel value="City: "/>
+					<p:inputText id="city" value="#{employeeController.address.city}" />
+					<p:message for="city" />
+
+					<h:outputLabel value="State: "/>
+					<p:inputText id="state" value="#{employeeController.address.state}" />
+					<p:message for="state" />
+
+					<h:outputLabel value="Zip: "/>
+					<p:inputText id="zip" value="#{employeeController.address.zip}" />
+					<p:message for="zip" />
+				</h:panelGrid>
+				<br/><br/>
+				<p:message id="addressMessage" for="addressMessage" />
+			</h:panelGroup>
+			
+			<f:facet name="footer">
+				<div style="text-align: right">
+					<p:commandButton value="Save" icon="ui-icon-disk"
+						title="Click to save the address"
+						action="#{employeeController.saveAddress}"
+						process="@this, :dialogForm:addressGrid" 
+						update=":dialogForm:addressPanel, :dialogForm:address" 
+						oncomplete="handleComplete(PF('addressDlg'), xhr, status, args)"/>
+					<p:commandButton value="Cancel" icon="ui-icon-cancel"
+						title="Click to cancel editing"
+						type="button"
+						onclick="PF('addressDlg').hide()" />
+				</div>
+			</f:facet>
+		</p:dialog>
+		
+		<p:dialog dynamic="true" modal="true" closable="true" closeOnEscape="true"
+			widgetVar="managerDlg" width="500" height="250">
+			<h:panelGroup id="managerPanel">
+				<p:dataTable id="managerTable" rendered="#{employeeController.selectingManager}"
+					lazy="true" value="#{employeeController.managerLazyDataModel}" var="employee"
+					paginator="true" paginatorAlwaysVisible="false" paginatorPosition="bottom"
+					rows="10"
+					selection="#{employeeController.employee.manager}" 
+					selectionMode="single">
+					<p:ajax event="rowSelect" process="@this" 
+						update=":dialogForm:employeePanel, :dialogForm:managerPanel" 
+						oncomplete="PF('managerDlg').hide()"/>
+					<f:facet name="header">Employees</f:facet>
+					<p:column headerText="Name" sortBy="#{employee.name}" filterBy="#{employee.name}">
+						<h:outputText value="#{employee.name}" />
+					</p:column>
+					<p:column headerText="Department" style="width: 150px; text-align: center">
+						<h:outputText value="#{employee.department.name}"/>
+					</p:column>
+				</p:dataTable>
+			</h:panelGroup>
+			
+			<f:facet name="footer">
+				<h:panelGroup id="managerButtons" layout="block" style="text-align:right">
+					<p:commandButton value="Nobody" icon="ui-icon-close"
+						title="Click to clear the manager"
+						rendered="#{employeeController.employee.manager != null}"
+						process="@this" 
+						update=":dialogForm:managerPanel, :dialogForm:manager"  
+						oncomplete="PF('managerDlg').hide()">
+						<f:setPropertyActionListener value="#{null}" 
+							target="#{employeeController.employee.manager}" />
+					</p:commandButton>
+					<p:commandButton value="Cancel" icon="ui-icon-cancel"
+						title="Click to close"
+						action="#{employeeController.stopSelectingManager}"
+						process="@this" 
+						update=":dialogForm:managerPanel"  
+						oncomplete="PF('managerDlg').hide()" />
+				</h:panelGroup>
+			</f:facet>
+		</p:dialog>
+		
+	</ui:define>
+</ui:composition>
